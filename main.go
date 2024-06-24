@@ -29,7 +29,9 @@ func run() error {
 		targetPath = os.Args[1]
 	}
 
-	r, err := git.PlainOpen(targetPath)
+	r, err := git.PlainOpenWithOptions(targetPath, &git.PlainOpenOptions{
+		DetectDotGit: true,
+	})
 
 	if err != nil {
 		return err
