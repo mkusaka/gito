@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
+	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 )
 
 require (
@@ -23,6 +23,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
-	golang.org/x/sys v0.0.0-20220915200043-7b5979e65e41 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
