@@ -30,7 +30,8 @@ func run() error {
 	}
 
 	r, err := git.PlainOpenWithOptions(targetPath, &git.PlainOpenOptions{
-		DetectDotGit: true,
+		DetectDotGit:          true,
+		EnableDotGitCommonDir: true,
 	})
 
 	if err != nil {
@@ -69,6 +70,16 @@ func run() error {
 	}
 
 	u := remote.Config().URLs[0]
+
+	// Convert SSH URL to HTTPS URL
+	if strings.HasPrefix(u, "git@") {
+		// git@github.com:user/repo.git -> https://github.com/user/repo
+		u = strings.Replace(u, "git@", "https://", 1)
+		u = strings.Replace(u, ".com:", ".com/", 1)
+		u = strings.Replace(u, ".org:", ".org/", 1)
+		u = strings.Replace(u, ".net:", ".net/", 1)
+		u = strings.TrimSuffix(u, ".git")
+	}
 
 	err = browser.OpenURL(u)
 	if err != nil {
