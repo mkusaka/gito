@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"net/url"
@@ -59,14 +58,14 @@ func run() error {
 
 	if remote == nil {
 		if len(remotes) == 0 {
-			return errors.New("no remote find")
+			return fmt.Errorf("no remote found")
 		} else {
 			var remoteNames []string
 
 			for _, r2 := range remotes {
 				remoteNames = append(remoteNames, r2.Config().Name)
 			}
-			return errors.New(fmt.Sprintf("cannot find target remote name: %s, current remotes: %s", *remoteName, strings.Join(remoteNames, ", ")))
+			return fmt.Errorf("cannot find target remote name: %s, current remotes: %s", *remoteName, strings.Join(remoteNames, ", "))
 		}
 	}
 
