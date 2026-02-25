@@ -1,9 +1,9 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -58,32 +58,56 @@ func run() error {
 
 	if remote == nil {
 		if len(remotes) == 0 {
-			return errors.New("no remote find")
+			return fmt.Errorf("no remote found")
 		} else {
 			var remoteNames []string
 
 			for _, r2 := range remotes {
 				remoteNames = append(remoteNames, r2.Config().Name)
 			}
-			return errors.New(fmt.Sprintf("cannot find target remote name: %s, current remotes: %s", *remoteName, strings.Join(remoteNames, ", ")))
+			return fmt.Errorf("cannot find target remote name: %s, current remotes: %s", *remoteName, strings.Join(remoteNames, ", "))
 		}
 	}
 
 	u := remote.Config().URLs[0]
 
-	// Convert SSH URL to HTTPS URL
-	if strings.HasPrefix(u, "git@") {
-		// git@github.com:user/repo.git -> https://github.com/user/repo
-		u = strings.Replace(u, "git@", "https://", 1)
-		u = strings.Replace(u, ".com:", ".com/", 1)
-		u = strings.Replace(u, ".org:", ".org/", 1)
-		u = strings.Replace(u, ".net:", ".net/", 1)
-		u = strings.TrimSuffix(u, ".git")
+	browserURL, err := toBrowserURL(u)
+	if err != nil {
+		return err
 	}
 
-	err = browser.OpenURL(u)
+	err = browser.OpenURL(browserURL)
 	if err != nil {
 		return fmt.Errorf("cannot open browser with error: %+v", err)
 	}
 	return nil
+}
+
+// toBrowserURL converts a git remote URL to a browser-accessible HTTPS URL.
+func toBrowserURL(u string) (string, error) {
+	if strings.HasPrefix(u, "ssh://") {
+		// ssh://git@github.com/user/repo.git -> https://github.com/user/repo
+		parsed, err := url.Parse(u)
+		if err != nil {
+			return "", fmt.Errorf("cannot parse SSH URL %q: %+v", u, err)
+		}
+		parsed.Scheme = "https"
+		parsed.User = nil
+		parsed.Path = strings.TrimSuffix(parsed.Path, ".git")
+		return parsed.String(), nil
+	}
+
+	if after, ok := strings.CutPrefix(u, "git@"); ok {
+		// git@github.com:user/repo.git -> https://github.com/user/repo
+		// Strip "git@" prefix, then split on first ":" to separate host and path
+		withoutPrefix := after
+		host, path, found := strings.Cut(withoutPrefix, ":")
+		if !found {
+			return "", fmt.Errorf("invalid git@ URL %q: missing ':'", u)
+		}
+		path = strings.TrimSuffix(path, ".git")
+		return "https://" + host + "/" + path, nil
+	}
+
+	return u, nil
 }
